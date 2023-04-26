@@ -27,6 +27,8 @@ import io.cloudevents.core.builder.CloudEventBuilder;
 import io.cloudevents.core.format.ContentType;
 import io.cloudevents.core.format.EventDeserializationException;
 import io.cloudevents.core.provider.EventFormatProvider;
+import io.cloudevents.protobuf.ProtoDeserializer;
+import io.cloudevents.protobuf.ProtobufFormat;
 import io.cloudevents.rw.CloudEventRWException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -34,11 +36,14 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import static io.cloudevents.core.format.ContentType.*;
@@ -161,12 +166,57 @@ class JsonFormatTest {
      * as it represents content that is not CE
      * specification compliant.
      */
-    void verifyDeserializeError(String inputFile){
+    void verifyDeserializeError(String inputFile) {
 
         byte[] input = loadFile(inputFile);
 
         assertThatExceptionOfType(EventDeserializationException.class).isThrownBy(() -> getFormat().deserialize(input));
 
+    }
+
+    @Test
+    public void test() {
+        io.cloudevents.v1.proto.CloudEvent protoCe = io.cloudevents.v1.proto.CloudEvent
+            .newBuilder()
+            .setSpecVersion("1.0")
+            .setId(UUID.randomUUID().toString())
+            .setType("foo")
+            .setSource("/foo")
+            .setTextData("hello")
+            .build();
+
+        final CloudEvent[] events = new CloudEvent[]{
+            CloudEventBuilder.v1()
+                .withId(UUID.randomUUID().toString())
+                .withType("foo")
+                .withSource(URI.create("/foo"))
+                .withData("application/json", "\"{\"Hello\": \"there\"}\"".getBytes(StandardCharsets.UTF_8))
+                .build(),
+            CloudEventBuilder.v1()
+                .withId(UUID.randomUUID().toString())
+                .withType("foo")
+                .withSource(URI.create("/foo"))
+                .withData("application/json", "{\"Hello\": \"there\"}".getBytes(StandardCharsets.UTF_8))
+                .build(),
+            CloudEventBuilder.v1()
+                .withId(UUID.randomUUID().toString())
+                .withType("foo")
+                .withSource(URI.create("/foo"))
+                .withData("application/json", "{[[[}".getBytes(StandardCharsets.UTF_8))
+                .build(),
+            CloudEventBuilder.v1()
+                .withId(UUID.randomUUID().toString())
+                .withType("foo")
+                .withSource(URI.create("/foo"))
+                .withData("application/json", "\"{[[[}\"".getBytes(StandardCharsets.UTF_8))
+                .build(),
+            new ProtoDeserializer(protoCe).read(CloudEventBuilder::fromSpecVersion),
+        };
+
+        for (final CloudEvent ce : events) {
+            byte[] bytes = new JsonFormat().serialize(ce);
+            System.out.println(new String(bytes, StandardCharsets.UTF_8));
+        }
     }
 
     static Stream<Arguments> jsonContentTypes() {
@@ -219,7 +269,7 @@ class JsonFormatTest {
             Arguments.of(V1_WITH_XML_DATA, "v1/base64_xml_data.json"),
             Arguments.of(V1_WITH_TEXT_DATA, "v1/base64_text_data.json"),
             Arguments.of(V1_WITH_BINARY_EXT, "v1/binary_attr.json"),
-            Arguments.of(V1_WITH_NUMERIC_EXT,"v1/numeric_ext.json")
+            Arguments.of(V1_WITH_NUMERIC_EXT, "v1/numeric_ext.json")
         );
     }
 

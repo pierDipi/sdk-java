@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import io.cloudevents.CloudEvent;
 import io.cloudevents.CloudEventData;
 import io.cloudevents.core.CloudEventUtils;
+import io.cloudevents.core.data.StringCloudEventData;
 import io.cloudevents.rw.CloudEventContextReader;
 import io.cloudevents.rw.CloudEventContextWriter;
 import io.cloudevents.rw.CloudEventRWException;
@@ -118,6 +119,10 @@ class CloudEventSerializer extends StdSerializer<CloudEvent> {
             CloudEventData data = value.getData();
             if (data instanceof JsonCloudEventData) {
                 gen.writeObjectField("data", ((JsonCloudEventData) data).getNode());
+            } else if (data instanceof StringCloudEventData) {
+                String string = ((StringCloudEventData) data).getValue();
+                gen.writeFieldName("data");
+                gen.writeString(string);
             } else {
                 byte[] dataBytes = data.toBytes();
                 String contentType = value.getDataContentType();

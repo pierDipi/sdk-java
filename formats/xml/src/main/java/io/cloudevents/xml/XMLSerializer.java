@@ -21,6 +21,7 @@ import io.cloudevents.CloudEvent;
 import io.cloudevents.CloudEventData;
 import io.cloudevents.SpecVersion;
 import io.cloudevents.core.CloudEventUtils;
+import io.cloudevents.core.data.StringCloudEventData;
 import io.cloudevents.core.format.EventSerializationException;
 import io.cloudevents.rw.CloudEventContextReader;
 import io.cloudevents.rw.CloudEventContextWriter;
@@ -207,6 +208,9 @@ class XMLSerializer {
             } else if (XMLUtils.isTextContent(dataContentType)) {
                 // Handle Textual Content
                 addElement("data", XMLConstants.CE_DATA_ATTR_TEXT, new String(data.toBytes()));
+            } else if (data instanceof StringCloudEventData) {
+                // Handle String Content
+                addElement("data", XMLConstants.CE_DATA_ATTR_TEXT, ((StringCloudEventData) data).getValue());
             } else {
                 // Handle Binary Content
                 final String encodedValue = Base64.getEncoder().encodeToString(data.toBytes());

@@ -19,6 +19,7 @@ package io.cloudevents.xml;
 import io.cloudevents.CloudEventData;
 import io.cloudevents.SpecVersion;
 import io.cloudevents.core.data.BytesCloudEventData;
+import io.cloudevents.core.data.StringCloudEventData;
 import io.cloudevents.rw.*;
 import io.cloudevents.types.Time;
 import org.w3c.dom.*;
@@ -169,7 +170,7 @@ class XMLDeserializer implements CloudEventReader {
 
         switch (attrType) {
             case XMLConstants.CE_DATA_ATTR_TEXT:
-                retVal = new TextCloudEventData(data.getTextContent());
+                retVal = StringCloudEventData.wrap(data.getTextContent());
                 break;
             case XMLConstants.CE_DATA_ATTR_BINARY:
                 String eData = data.getTextContent();
@@ -296,7 +297,7 @@ class XMLDeserializer implements CloudEventReader {
 
         final Attr a = e.getAttributeNodeNS(XMLConstants.XSI_NAMESPACE, "type");
 
-        if (a != null) {
+        if (a == null) {
             return a.getValue();
         } else {
             return null;
@@ -316,21 +317,4 @@ class XMLDeserializer implements CloudEventReader {
 
         return true;
     }
-
-    // DataWrapper Inner Classes
-
-    public class TextCloudEventData implements CloudEventData {
-
-        private final String text;
-
-        TextCloudEventData(String text) {
-            this.text = text;
-        }
-
-        @Override
-        public byte[] toBytes() {
-            return text.getBytes();
-        }
-    }
-
 }

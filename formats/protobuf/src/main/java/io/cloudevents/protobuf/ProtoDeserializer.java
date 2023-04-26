@@ -19,6 +19,7 @@ package io.cloudevents.protobuf;
 import io.cloudevents.CloudEventData;
 import io.cloudevents.SpecVersion;
 import io.cloudevents.core.data.BytesCloudEventData;
+import io.cloudevents.core.data.StringCloudEventData;
 import io.cloudevents.core.v1.CloudEventV1;
 import io.cloudevents.rw.*;
 import io.cloudevents.v1.proto.CloudEvent;
@@ -34,7 +35,7 @@ import java.util.Map.Entry;
 /**
  * Implements a {@link CloudEventReader} that can deserialize a {@link CloudEvent} protobuf representation;
  */
-class ProtoDeserializer implements CloudEventReader {
+public class ProtoDeserializer implements CloudEventReader {
     private final CloudEvent protoCe;
 
     public ProtoDeserializer(CloudEvent protoCe) {
@@ -89,16 +90,13 @@ class ProtoDeserializer implements CloudEventReader {
 
         // Process the data
         CloudEventData data = null;
-        byte[] raw = null;
 
         switch (this.protoCe.getDataCase()) {
             case BINARY_DATA:
-                raw = this.protoCe.getBinaryData().toByteArray();
-                data = BytesCloudEventData.wrap(raw);
+                data = BytesCloudEventData.wrap(this.protoCe.getBinaryData().toByteArray());
                 break;
             case TEXT_DATA:
-                raw = this.protoCe.getTextData().getBytes(StandardCharsets.UTF_8);
-                data = BytesCloudEventData.wrap(raw);
+                data = StringCloudEventData.wrap(this.protoCe.getTextData());
                 break;
             case PROTO_DATA:
                 data = new ProtoDataWrapper(this.protoCe.getProtoData());
@@ -118,6 +116,7 @@ class ProtoDeserializer implements CloudEventReader {
     /**
      * Convert a {@link com.google.protobuf.Timestamp} to a {@link OffsetDateTime}. Note that protobuf timestamps are assumed
      * to be in UTC time, so the resulting OffsetDateTime will also be.
+     *
      * @param timestamp The timestamp to convert
      * @return An OffsetDateTime representing the input protobuf timestamp
      */

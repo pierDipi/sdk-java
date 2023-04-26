@@ -31,6 +31,7 @@ import io.cloudevents.CloudEventData;
 import io.cloudevents.SpecVersion;
 import io.cloudevents.core.builder.CloudEventBuilder;
 import io.cloudevents.core.data.BytesCloudEventData;
+import io.cloudevents.core.data.StringCloudEventData;
 import io.cloudevents.rw.*;
 
 import java.nio.charset.StandardCharsets;
@@ -123,7 +124,7 @@ class CloudEventDeserializer extends StdDeserializer<CloudEvent> {
                                 } else {
                                     JsonNode dataNode = node.remove("data");
                                     assertNodeType(dataNode, JsonNodeType.STRING, "data", "Because content type is not a json, only a string is accepted as data");
-                                    data = BytesCloudEventData.wrap(dataNode.asText().getBytes(StandardCharsets.UTF_8));
+                                    data = StringCloudEventData.wrap(dataNode.asText());
                                 }
                             }
                         }
