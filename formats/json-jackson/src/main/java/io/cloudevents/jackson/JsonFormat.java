@@ -17,9 +17,11 @@
 package io.cloudevents.jackson;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import io.cloudevents.CloudEvent;
+import io.cloudevents.CloudEventBatch;
 import io.cloudevents.CloudEventData;
 import io.cloudevents.core.builder.CloudEventBuilder;
 import io.cloudevents.core.format.ContentType;
@@ -190,7 +192,7 @@ public final class JsonFormat implements EventFormat {
 
     /**
      * @param forceDataBase64Serialization force json base64 encoding for data
-     * @param forceStringSerialization force string serialization for non json data field
+     * @param forceStringSerialization     force string serialization for non json data field
      * @return a JacksonModule with CloudEvent serializer/deserializer customizing the data serialization.
      * @see #withForceJsonDataToBase64()
      * @see #withForceNonJsonDataToString()
@@ -210,10 +212,17 @@ public final class JsonFormat implements EventFormat {
      */
     public static SimpleModule getCloudEventJacksonModule(JsonFormatOptions options) {
         final SimpleModule ceModule = new SimpleModule("CloudEvent");
-        ceModule.addSerializer(CloudEvent.class, new CloudEventSerializer(
-            options.isForceDataBase64Serialization(), options.isForceStringSerialization()));
-        ceModule.addDeserializer(CloudEvent.class, new CloudEventDeserializer(
-            options.isForceExtensionNameLowerCaseDeserialization(), options.isForceIgnoreInvalidExtensionNameDeserialization(), options.isDataContentTypeDefaultingDisabled()));
+
+        final CloudEventSerializer serializer = new CloudEventSerializer(
+            options.isForceDataBase64Serialization(), options.isForceStringSerialization());
+        final CloudEventDeserializer deserializer = new CloudEventDeserializer(
+            options.isForceExtensionNameLowerCaseDeserialization(), options.isForceIgnoreInvalidExtensionNameDeserialization(), options.isDataContentTypeDefaultingDisabled());
+
+        ceModule.addSerializer(CloudEvent.class, serializer);
+        ceModule.addDeserializer(CloudEvent.class, deserializer);
+        ceModule.addSerializer(CloudEventBatch.class, new CloudEventBatchSerializer(serializer));
+        ceModule.addDeserializer(CloudEventBatch.class, new CloudEventBatchDeserializer(deserializer));
+
         return ceModule;
     }
 
