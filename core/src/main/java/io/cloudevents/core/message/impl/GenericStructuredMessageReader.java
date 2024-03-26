@@ -24,15 +24,22 @@ import io.cloudevents.core.provider.EventFormatProvider;
 import io.cloudevents.lang.Nullable;
 import io.cloudevents.rw.CloudEventRWException;
 
+import java.nio.ByteBuffer;
+
 /**
  * Generic implementation of a structured message.
  */
 public class GenericStructuredMessageReader extends BaseStructuredMessageReader {
 
     private final EventFormat format;
-    private final byte[] payload;
+    private final ByteBuffer payload;
 
     public GenericStructuredMessageReader(EventFormat format, byte[] payload) {
+        this.format = format;
+        this.payload = ByteBuffer.wrap(payload);
+    }
+
+    public GenericStructuredMessageReader(EventFormat format, ByteBuffer payload) {
         this.format = format;
         this.payload = payload;
     }

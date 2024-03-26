@@ -30,8 +30,10 @@ import io.cloudevents.rw.CloudEventWriter;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.Headers;
+import org.apache.kafka.common.utils.Utils;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.nio.ByteBuffer;
 
 /**
  * This class provides a collection of methods to create {@link io.cloudevents.core.message.MessageReader}
@@ -62,6 +64,15 @@ public final class KafkaMessageFactory {
      * @see #createReader(ConsumerRecord)
      */
     public static MessageReader createReader(Headers headers, byte[] payload) throws CloudEventRWException {
+        return MessageUtils.parseStructuredOrBinaryMessage(
+            () -> KafkaHeaders.getParsedKafkaHeader(headers, KafkaHeaders.CONTENT_TYPE),
+            format -> new GenericStructuredMessageReader(format, payload),
+            () -> KafkaHeaders.getParsedKafkaHeader(headers, KafkaHeaders.SPEC_VERSION),
+            sv -> new KafkaBinaryMessageReaderImpl(sv, headers, payload)
+        );
+    }
+
+    public static MessageReader createReader(Headers headers, ByteBuffer payload) throws CloudEventRWException {
         return MessageUtils.parseStructuredOrBinaryMessage(
             () -> KafkaHeaders.getParsedKafkaHeader(headers, KafkaHeaders.CONTENT_TYPE),
             format -> new GenericStructuredMessageReader(format, payload),

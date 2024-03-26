@@ -17,10 +17,12 @@
 
 package io.cloudevents.core.message;
 
+import io.cloudevents.core.data.ByteBufferCloudEventData;
 import io.cloudevents.core.format.EventFormat;
 import io.cloudevents.rw.CloudEventRWException;
 
 import javax.annotation.ParametersAreNonnullByDefault;
+import java.nio.ByteBuffer;
 
 /**
  * Interface to write the {@link MessageReader} content (CloudEvents attributes, extensions and payload) to a new representation structured representation.
@@ -36,4 +38,7 @@ public interface StructuredMessageWriter<R> {
      */
     R setEvent(EventFormat format, byte[] value) throws CloudEventRWException;
 
+    default R setEvent(EventFormat format, ByteBuffer value) throws CloudEventRWException {
+        return setEvent(format, ByteBufferCloudEventData.wrap(value).toBytes());
+    }
 }

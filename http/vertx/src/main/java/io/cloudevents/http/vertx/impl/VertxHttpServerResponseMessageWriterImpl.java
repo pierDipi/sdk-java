@@ -23,9 +23,12 @@ import io.cloudevents.core.format.EventFormat;
 import io.cloudevents.core.message.MessageWriter;
 import io.cloudevents.rw.CloudEventRWException;
 import io.cloudevents.rw.CloudEventWriter;
+import io.netty.buffer.Unpooled;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpHeaders;
 import io.vertx.core.http.HttpServerResponse;
+
+import java.nio.ByteBuffer;
 
 public class VertxHttpServerResponseMessageWriterImpl implements MessageWriter<CloudEventWriter<HttpServerResponse>, HttpServerResponse>, CloudEventWriter<HttpServerResponse> {
 
@@ -78,6 +81,13 @@ public class VertxHttpServerResponseMessageWriterImpl implements MessageWriter<C
     public HttpServerResponse setEvent(EventFormat format, byte[] value) throws CloudEventRWException {
         this.response.putHeader(HttpHeaders.CONTENT_TYPE, format.serializedContentType());
         this.response.end(Buffer.buffer(value));
+        return this.response;
+    }
+
+    @Override
+    public HttpServerResponse setEvent(EventFormat format, ByteBuffer value) throws CloudEventRWException {
+        this.response.putHeader(HttpHeaders.CONTENT_TYPE, format.serializedContentType());
+        this.response.end(Buffer.buffer(Unpooled.wrappedBuffer(value)));
         return this.response;
     }
 }

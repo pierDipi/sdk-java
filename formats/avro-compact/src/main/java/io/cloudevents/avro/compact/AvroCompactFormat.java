@@ -20,7 +20,7 @@ package io.cloudevents.avro.compact;
 import io.cloudevents.CloudEvent;
 import io.cloudevents.CloudEventData;
 import io.cloudevents.core.builder.CloudEventBuilder;
-import io.cloudevents.core.data.BytesCloudEventData;
+import io.cloudevents.core.data.ByteBufferCloudEventData;
 import io.cloudevents.core.format.EventDeserializationException;
 import io.cloudevents.core.format.EventFormat;
 import io.cloudevents.core.format.EventSerializationException;
@@ -73,7 +73,7 @@ public class AvroCompactFormat implements EventFormat {
 
             CloudEventData data = from.getData();
             if (data != null)
-                to.setData(ByteBuffer.wrap(data.toBytes()));
+                to.setData(data.toByteBuffer());
             return to.build().toByteBuffer().array();
         } catch (Exception e) {
             throw new EventSerializationException(e);
@@ -119,7 +119,7 @@ public class AvroCompactFormat implements EventFormat {
             if (from.getData() == null)
                 return to.end();
             else {
-                CloudEventData data = BytesCloudEventData.wrap(from.getData().array());
+                CloudEventData data = ByteBufferCloudEventData.wrap(from.getData());
                 return to.end(mapper.map(data));
             }
         } catch (Exception e) {

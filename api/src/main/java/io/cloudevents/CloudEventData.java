@@ -17,6 +17,8 @@
 
 package io.cloudevents;
 
+import java.nio.ByteBuffer;
+
 /**
  * Interface that defines a wrapper for CloudEvent data.
  * <p>
@@ -33,4 +35,15 @@ public interface CloudEventData {
      */
     byte[] toBytes();
 
+
+    /**
+     * Returns the ByteBuffer representation of this data instance.
+     * <p>
+     * Note: depending on the implementation, this operation may be expensive.
+     *
+     * @return this data, represented as ByteBuffer.
+     */
+    default ByteBuffer toByteBuffer() {
+        return ByteBuffer.wrap(toBytes());
+    }
 }

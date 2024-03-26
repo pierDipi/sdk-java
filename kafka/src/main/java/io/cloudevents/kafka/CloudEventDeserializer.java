@@ -24,6 +24,7 @@ import io.cloudevents.rw.CloudEventDataMapper;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.Deserializer;
 
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
@@ -57,6 +58,15 @@ public class CloudEventDeserializer implements Deserializer<CloudEvent> {
 
     @Override
     public CloudEvent deserialize(String topic, Headers headers, byte[] data) {
+        MessageReader reader = KafkaMessageFactory.createReader(headers, data);
+        if (mapper == null) {
+            return reader.toEvent();
+        } else {
+            return reader.toEvent(mapper);
+        }
+    }
+
+    public CloudEvent deserialize(String topic, Headers headers, ByteBuffer data) {
         MessageReader reader = KafkaMessageFactory.createReader(headers, data);
         if (mapper == null) {
             return reader.toEvent();

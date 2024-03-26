@@ -18,10 +18,12 @@
 package io.cloudevents.kafka.impl;
 
 import io.cloudevents.SpecVersion;
+import io.cloudevents.core.data.ByteBufferCloudEventData;
 import io.cloudevents.core.data.BytesCloudEventData;
 import io.cloudevents.core.message.impl.BaseGenericBinaryMessageReaderImpl;
 import org.apache.kafka.common.header.Headers;
 
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -32,6 +34,13 @@ public class KafkaBinaryMessageReaderImpl extends BaseGenericBinaryMessageReader
 
     public KafkaBinaryMessageReaderImpl(SpecVersion version, Headers headers, byte[] payload) {
         super(version, payload != null && payload.length > 0 ? BytesCloudEventData.wrap(payload) : null);
+
+        Objects.requireNonNull(headers);
+        this.headers = headers;
+    }
+
+    public KafkaBinaryMessageReaderImpl(SpecVersion version, Headers headers, ByteBuffer payload) {
+        super(version, payload != null && payload.remaining() > 0 ? ByteBufferCloudEventData.wrap(payload) : null);
 
         Objects.requireNonNull(headers);
         this.headers = headers;
